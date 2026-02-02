@@ -55,7 +55,7 @@
 
     .card {
       width: min(730px, 92vw);
-      padding: 26px 30px;
+      padding: 20px 30px 35px ;
       background: var(--card);
       backdrop-filter: blur(10px);
       border-radius: 22px;
@@ -263,7 +263,7 @@
     <!-- INTRO PAGE -->
     <div class="intro-page" id="introPage">
       <div class="intro-emoji">🤔</div>
-      <div class="intro-text" style="margin-bottom:40px;">Paul has a question for you... 😏</div>
+      <div class="intro-text" style="margin-bottom:40px;">Paul has a question for you...</div>
       <button class="view-btn" id="viewQuestBtn" style="margin-bottom: 50px;">View Question</button>
     </div>
 
@@ -287,8 +287,7 @@
 
     <!-- QUESTION PAGE 3 -->
     <div class="question-page" id="finalQuestionPage">
-      <div style="font-size: 100px; margin-bottom: 20px; animation: bounce 2s ease-in-out infinite;">💕</div>
-      <svg class="art" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
+      <svg class="art" id="questSvg" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="fur" x1="0" x2="1">
           <stop offset="0" stop-color="#f7c7a1"/>
@@ -325,7 +324,7 @@
             fill="#ff7aa2"/>
     </svg>
 
-      <h1>Trish will you be my valentine?</h1>
+      <h1 id="mainQuestion">Trish, it is my wish that you be my valentine?</h1>
 
       <section class="button-zone" id="zone">
       <button id="yesBtn">Yes</button>
@@ -333,6 +332,7 @@
     </section>
 
       <section class="result" id="result">
+        <div style="font-size: 100px; animation: bounce 2s ease-in-out infinite;">💕</div>
         <h2>YAY! 🎉</h2>
         <img
           class="fireworks"
@@ -505,7 +505,11 @@
     /* ---------- YES CLICK ---------- */
     yesBtn.addEventListener("click", () => {
       zone.style.display = "none";
-      if (hint) hint.style.display = "none";     // HIDE THE HINT
+      if (hint) hint.style.display = "none";
+      const questSvg = document.getElementById("questSvg");
+      if (questSvg) questSvg.style.display = "none";
+      const mainQuestion = document.getElementById("mainQuestion");
+      if (mainQuestion) mainQuestion.style.display = "none";
       result.style.display = "block";
       resizeConfettiCanvas();
       fullScreenConfetti();
