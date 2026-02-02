@@ -1,0 +1,9 @@
+[build]
+  command = "npm ci"
+  functions = "netlify/functions"
+  publish = "."
+
+[env]
+  [env.production]
+    GMAIL_USER = ""
+    GMAIL_APP_PASSWORD = ""

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Will you be my Valentine?</title>
+
+  <!-- Confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Toastify -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+  <style>
+    :root {
+      --bg1: #ff006e;
+      --bg2: #ffbe0b;
+      --bg3: #3a86ff;
+      --card: #fff0f3;
+      --yes: #ff006e;
+      --yesHover: #d60061;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #ff006e 0%, #ffbe0b 25%, #3a86ff 50%, #fb5607 75%, #8338ec 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      font-family: 'Comic Sans MS', 'Trebuchet MS', system-ui, sans-serif;
+      overflow: hidden;
+      padding: 16px;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* FULL-SCREEN CONFETTI CANVAS */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .card {
+      width: min(730px, 92vw);
+      padding: 26px 30px;
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border-radius: 22px;
+      text-align: center;
+      box-shadow: 0 18px 60px rgba(0,0,0,.25);
+      border: 3px dashed #ff006e;
+      transform: perspective(1000px) rotateX(2deg);
+    }
+
+    .art {
+      width: min(260px, 80vw);
+      margin: 0 auto 10px;
+      display: block;
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,.12));
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    h1 {
+      font-size: clamp(26px, 4vw, 44px);
+      margin: 12px 0 18px;
+      background: linear-gradient(45deg, #ff006e, #ffbe0b, #3a86ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 2px 2px 4px rgba(0,0,0,.1);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .button-zone {
+      position: relative;
+      width: min(520px, 92%);
+      height: 150px;
+      margin: 0 auto;
+      touch-action: none;
+    }
+
+    button {
+      padding: 16px 24px;
+      font-size: 18px;
+      font-weight: 800;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,.14);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .12s ease, background .12s ease;
+    }
+
+    #yesBtn {
+      position: absolute;
+      top: 50%;
+      left: 18%;
+      transform: translateY(-50%);
+      background: linear-gradient(135deg, var(--yes), #fb5607);
+      color: #fff;
+      font-size: 20px;
+      border: 2px solid #fff;
+      box-shadow: 0 8px 20px rgba(255, 0, 110, 0.4);
+    }
+    #yesBtn:hover { 
+      background: linear-gradient(135deg, var(--yesHover), #e03100);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    #noBtn {
+      position: absolute;
+      top: 50%;
+      left: 62%;
+      transform: translateY(-50%);
+      background: linear-gradient(135deg, #00f5ff, #0099ff);
+      color: #000;
+      font-weight: 900;
+      border: 3px solid #fff;
+      box-shadow: 0 8px 20px rgba(0, 245, 255, 0.4);
+      animation: wiggle 0.5s ease-in-out infinite;
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: translateY(-50%) rotate(0deg); }
+      25% { transform: translateY(-50%) rotate(-5deg); }
+      75% { transform: translateY(-50%) rotate(5deg); }
+    }
+
+    #noBtn:hover {
+      animation: spin 1s linear infinite, wiggle 0.3s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      from { transform: translateY(-50%) rotate(0deg); }
+      to { transform: translateY(-50%) rotate(360deg); }
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: .9;
+      font-weight: bold;
+      color: #ff006e;
+    }
+
+    .result {
+      display: none;
+      margin-top: 18px;
+      animation: pop .35s ease;
+    }
+
+    .result h2 {
+      font-size: clamp(30px, 4.5vw, 46px);
+      margin: 10px 0;
+      background: linear-gradient(45deg, #ff006e, #ffbe0b, #3a86ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .fireworks {
+      width: min(380px, 90vw);
+      margin: 0 auto;
+      display: block;
+    }
+
+    @keyframes pop {
+      from { transform: scale(.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .intro-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .intro-emoji {
+      font-size: 150px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    .intro-text {
+      font-size: clamp(24px, 5vw, 48px);
+      font-weight: bold;
+      background: linear-gradient(45deg, #ff006e, #ffbe0b, #3a86ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .intro-subtext {
+      font-size: clamp(16px, 3vw, 24px);
+      color: #333;
+      margin-bottom: 40px;
+      font-weight: 600;
+    }
+
+    .view-btn {
+      padding: 20px 50px;
+      font-size: 20px;
+      font-weight: 900;
+      border-radius: 50px;
+      border: none;
+      background: linear-gradient(135deg, #ff006e, #fb5607);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 10px 10px rgba(255, 0, 110, 0.4);
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+
+    .view-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 15px 40px rgba(255, 0, 110, 0.6);
+    }
+
+    .question-page {
+      display: none;
+    }
+
+    .question-page.active {
+      display: block;
+    }
+
+    .intro-page.hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="confettiCanvas"></canvas>
+
+  <main class="card">
+    <!-- INTRO PAGE -->
+    <div class="intro-page" id="introPage">
+      <div class="intro-emoji">🤔</div>
+      <div class="intro-text" style="margin-bottom:40px;">Paul has a question for you... 😏</div>
+      <button class="view-btn" id="viewQuestBtn" style="margin-bottom: 50px;">View Question</button>
+    </div>
+
+    <!-- QUESTION PAGE -->
+    <div class="question-page" id="questionPage">
+      <div class="love-story">
+        <div style="font-size: 120px; margin-bottom: 20px;">💝</div>
+        <h2 style="font-size: clamp(28px, 4vw, 40px); margin-bottom: 30px; background: linear-gradient(45deg, #ff006e, #ffbe0b, #3a86ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Something to ask... 💕</h2>
+        
+        <p style="font-size: clamp(16px, 2.5vw, 20px); line-height: 1.8; color: #333; margin: 20px 0;">
+          I've really enjoyed getting to know you. 😊 There's something special about you that makes me smile, and I'd love to explore where this could go.
+        </p>
+
+        <p style="font-size: clamp(16px, 2.5vw, 20px); line-height: 1.8; color: #333; margin: 40px 0 40px 0;">
+          So I have to ask... 👉👈
+        </p>
+
+        <button class="view-btn" id="askBtn" style="margin-bottom: 40px;" >The Question 💭</button>
+      </div>
+    </div>
+
+    <!-- QUESTION PAGE 3 -->
+    <div class="question-page" id="finalQuestionPage">
+      <div style="font-size: 100px; margin-bottom: 20px; animation: bounce 2s ease-in-out infinite;">💕</div>
+      <svg class="art" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="fur" x1="0" x2="1">
+          <stop offset="0" stop-color="#f7c7a1"/>
+          <stop offset="1" stop-color="#f2a97b"/>
+        </linearGradient>
+        <linearGradient id="heart" x1="0" x2="1">
+          <stop offset="0" stop-color="#ff4d7d"/>
+          <stop offset="1" stop-color="#ff1f68"/>
+        </linearGradient>
+      </defs>
+
+      <path d="M250 50 C250 33 270 25 282 38
+               C294 25 314 33 314 50
+               C314 78 282 92 282 106
+               C282 92 250 78 250 50Z"
+            fill="url(#heart)"/>
+
+      <path d="M90 120 C90 70 140 40 190 60
+               C240 40 290 70 290 120
+               C290 180 240 210 190 210
+               C140 210 90 180 90 120Z"
+            fill="url(#fur)"/>
+
+      <path d="M110 92 L95 55 L140 78 Z" fill="#f2a97b"/>
+      <path d="M270 92 L285 55 L240 78 Z" fill="#f2a97b"/>
+
+      <circle cx="160" cy="130" r="8"/>
+      <circle cx="220" cy="130" r="8"/>
+
+      <path d="M190 144 C186 144 182 148 182 152
+               C182 160 190 164 190 170
+               C190 164 198 160 198 152
+               C198 148 194 144 190 144Z"
+            fill="#ff7aa2"/>
+    </svg>
+
+      <h1>Trish will you be my valentine?</h1>
+
+      <section class="button-zone" id="zone">
+      <button id="yesBtn">Yes</button>
+      <button id="noBtn">No</button>
+    </section>
+
+      <section class="result" id="result">
+        <h2>YAY! 🎉</h2>
+        <img
+          class="fireworks"
+          src="https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif"
+          alt="Fireworks"
+        />
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const introPage = document.getElementById("introPage");
+    const questionPage = document.getElementById("questionPage");
+    const finalQuestionPage = document.getElementById("finalQuestionPage");
+    const viewQuestBtn = document.getElementById("viewQuestBtn");
+    const askBtn = document.getElementById("askBtn");
+
+    // Navigate to love story page
+    viewQuestBtn.addEventListener("click", () => {
+      introPage.classList.add("hidden");
+      questionPage.classList.add("active");
+    });
+
+    // Navigate to final question page
+    askBtn.addEventListener("click", () => {
+      questionPage.classList.remove("active");
+      finalQuestionPage.classList.add("active");
+    });
+
+    const zone = document.getElementById("zone");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const result = document.getElementById("result");
+    const hint = document.getElementById("hint");
+
+    /* ---------- CONFETTI ---------- */
+    const confettiCanvas = document.getElementById("confettiCanvas");
+
+    function resizeConfettiCanvas() {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      confettiCanvas.width = Math.floor(window.innerWidth * dpr);
+      confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+      confettiCanvas.style.width = "100vw";
+      confettiCanvas.style.height = "100vh";
+    }
+
+    resizeConfettiCanvas();
+    window.addEventListener("resize", resizeConfettiCanvas);
+    window.addEventListener("orientationchange", () => setTimeout(resizeConfettiCanvas, 150));
+
+    const confettiInstance = confetti.create(confettiCanvas, {
+      resize: false,
+      useWorker: true
+    });
+
+    function fullScreenConfetti() {
+      const end = Date.now() + 1600;
+
+      (function frame() {
+        confettiInstance({
+          particleCount: 12,
+          spread: 90,
+          startVelocity: 45,
+          ticks: 180,
+          origin: { x: Math.random(), y: Math.random() * 0.3 }
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+
+      setTimeout(() => {
+        confettiInstance({
+          particleCount: 300,
+          spread: 140,
+          startVelocity: 60,
+          ticks: 220,
+          origin: { x: 0.5, y: 0.55 }
+        });
+      }, 300);
+    }
+
+    /* ---------- YES BUTTON GROWS ---------- */
+    let yesScale = 1;
+    function growYes() {
+      yesScale = Math.min(2.2, yesScale + 0.1);
+      yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
+    }
+
+    /* ---------- NO BUTTON RUNS AWAY & TRANSFORMS ---------- */
+    function clamp(n, min, max) {
+      return Math.max(min, Math.min(max, n));
+    }
+
+    let noClickCount = 0;
+    const noBtnTexts = ["No", "Nope!", "Never! 🚫", "Not today! 😤", "IMPOSSIBLE! 💢", "Why would I?!", "Keep dreaming! 😏", "Not gonna happen!", "LOL no", "Try harder! 😈"];
+
+    function moveNo(px, py) {
+      const z = zone.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      let dx = (b.left + b.width / 2) - px;
+      let dy = (b.top + b.height / 2) - py;
+      let mag = Math.hypot(dx, dy) || 1;
+      dx /= mag;
+      dy /= mag;
+
+      let newLeft = (b.left - z.left) + dx * 150;
+      let newTop  = (b.top - z.top) + dy * 150;
+
+      newLeft = clamp(newLeft, 0, z.width - b.width);
+      newTop  = clamp(newTop, 0, z.height - b.height);
+
+      noBtn.style.left = newLeft + "px";
+      noBtn.style.top = newTop + "px";
+      noBtn.style.transform = "none";
+
+      // Add fun transformations
+      const randomRotation = Math.random() * 20 - 10;
+      const randomScale = 0.8 + Math.random() * 0.6;
+      noBtn.style.transform = `rotate(${randomRotation}deg) scale(${randomScale})`;
+
+      // Change text randomly
+      if (Math.random() > 0.6) {
+        noClickCount++;
+        noBtn.textContent = noBtnTexts[Math.min(noClickCount, noBtnTexts.length - 1)];
+      }
+
+      growYes();
+    }
+
+    zone.addEventListener("pointermove", e => {
+      const b = noBtn.getBoundingClientRect();
+      const d = Math.hypot(
+        (b.left + b.width / 2) - e.clientX,
+        (b.top + b.height / 2) - e.clientY
+      );
+      if (d < 140) moveNo(e.clientX, e.clientY);
+    });
+
+    noBtn.addEventListener("click", e => {
+      e.preventDefault();
+      noResponseCount++;
+      
+      if (noResponseCount <= 4) {
+        const response = noResponses[Math.min(noResponseCount - 1, noResponses.length - 1)];
+        Toastify({
+          text: response,
+          duration: 3000,
+          gravity: "top",
+          position: "center",
+          backgroundColor: "#ff006e",
+          className: "info"
+        }).showToast();
+      }
+      
+      if (noResponseCount >= 4) {
+        setTimeout(() => {
+          noBtn.style.display = "none";
+        }, 800);
+      }
+    });
+
+    let noResponseCount = 0;
+    const noResponses = [
+      "Haha, nice try! 😏",
+      "I don't think so... 🙅",
+      "Abeg na serious question be this! 😤",
+      "OKAY, OKAY, I'll ask properly then... 😅"
+    ];
+
+    /* ---------- YES CLICK ---------- */
+    yesBtn.addEventListener("click", () => {
+      zone.style.display = "none";
+      if (hint) hint.style.display = "none";     // HIDE THE HINT
+      result.style.display = "block";
+      resizeConfettiCanvas();
+      fullScreenConfetti();
+
+      // Send email via Netlify Function
+      fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        body: JSON.stringify({
+          to: 'paulchukwurah7@gmail.com',
+          subject: '💕 Valentine Response - YES! 🎉',
+          message: 'YES! Trish said yes to being my valentine! 💕🎉'
+        })
+      }).then(res => res.json())
+        .then(data => console.log('Email sent:', data))
+        .catch(err => console.log('Email notification sent!'));
+    });
+  </script>
+</body>
+</html>
+
+

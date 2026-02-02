@@ -1,0 +1,11 @@
+{
+  "name": "val-app",
+  "version": "1.0.0",
+  "description": "Valentine email app",
+  "scripts": {
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.1"
+  }
+}
