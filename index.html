@@ -271,7 +271,7 @@
 <body>
   <canvas id="confettiCanvas"></canvas>
 
-  <main class="card">
+  <main class="card" style="position: relative;">
     <!-- INTRO PAGE -->
     <div class="intro-page" id="introPage">
       <div class="intro-emoji">🤔</div>
@@ -441,6 +441,8 @@
     const noBtnTexts = ["No", "Nope!", "Never! 🚫", "Not today! 😤", "IMPOSSIBLE! 💢", "Why would I?!", "Keep dreaming! 😏", "Not gonna happen!", "LOL no", "Try harder! 😈"];
 
     function moveNo(px, py) {
+      const card = document.querySelector(".card");
+      const cardRect = card.getBoundingClientRect();
       const z = zone.getBoundingClientRect();
       const b = noBtn.getBoundingClientRect();
       const yb = yesBtn.getBoundingClientRect();
@@ -451,40 +453,56 @@
       dx /= mag;
       dy /= mag;
 
-      let newLeft = (b.left - z.left) + dx * 200;
-      let newTop  = (b.top - z.top) + dy * 200;
+      let newLeft = (b.left - z.left) + dx * 150;
+      let newTop  = (b.top - z.top) + dy * 150;
 
-      // Allow more movement outside the zone
-      newLeft = clamp(newLeft, -100, z.width + 100 - b.width);
-      newTop  = clamp(newTop, -100, z.height + 100 - b.height);
+      // Calculate button bounds in zone coordinates
+      const btnLeftBound = newLeft;
+      const btnTopBound = newTop;
+      const btnRightBound = newLeft + b.width;
+      const btnBottomBound = newTop + b.height;
+
+      // Calculate card bounds in zone coordinates
+      const cardLeftInZone = cardRect.left - z.left;
+      const cardTopInZone = cardRect.top - z.top;
+      const cardRightInZone = cardLeftInZone + cardRect.width;
+      const cardBottomInZone = cardTopInZone + cardRect.height;
+
+      // Clamp to card boundaries
+      newLeft = Math.max(cardLeftInZone, Math.min(newLeft, cardRightInZone - b.width));
+      newTop = Math.max(cardTopInZone, Math.min(newTop, cardBottomInZone - b.height));
 
       // Check collision with Yes button
-      const noBtnSimulated = {
-        left: z.left + newLeft,
-        right: z.left + newLeft + b.width,
-        top: z.top + newTop,
-        bottom: z.top + newTop + b.height
-      };
+      const noBtnLeft = z.left + newLeft;
+      const noBtnTop = z.top + newTop;
+      const noBtnRight = noBtnLeft + b.width;
+      const noBtnBottom = noBtnTop + b.height;
 
-      // If overlapping with Yes button, adjust position
-      if (!(noBtnSimulated.right < yb.left || noBtnSimulated.left > yb.right ||
-            noBtnSimulated.bottom < yb.top || noBtnSimulated.top > yb.bottom)) {
-        // Push away from Yes button
+      // AABB collision detection
+      const overlapping = !(noBtnRight < yb.left || noBtnLeft > yb.right ||
+                           noBtnBottom < yb.top || noBtnTop > yb.bottom);
+
+      if (overlapping) {
+        // Calculate center points
         const yesCenterX = yb.left + yb.width / 2;
         const yesCenterY = yb.top + yb.height / 2;
-        const noCenterX = z.left + newLeft + b.width / 2;
-        const noCenterY = z.top + newTop + b.height / 2;
-        
+        const noCenterX = noBtnLeft + b.width / 2;
+        const noCenterY = noBtnTop + b.height / 2;
+
+        // Push away from Yes button
         let pushDx = noCenterX - yesCenterX;
         let pushDy = noCenterY - yesCenterY;
         let pushMag = Math.hypot(pushDx, pushDy) || 1;
         pushDx /= pushMag;
         pushDy /= pushMag;
-        
-        newLeft = (yb.left - z.left) + pushDx * 150;
-        newTop = (yb.top - z.top) + pushDy * 150;
-        newLeft = clamp(newLeft, -100, z.width + 100 - b.width);
-        newTop = clamp(newTop, -100, z.height + 100 - b.height);
+
+        // Calculate new position based on push direction
+        newLeft = (yb.left - z.left) - (pushDx * 120);
+        newTop = (yb.top - z.top) - (pushDy * 120);
+
+        // Clamp again to card after collision push
+        newLeft = Math.max(cardLeftInZone, Math.min(newLeft, cardRightInZone - b.width));
+        newTop = Math.max(cardTopInZone, Math.min(newTop, cardBottomInZone - b.height));
       }
 
       noBtn.style.left = newLeft + "px";
