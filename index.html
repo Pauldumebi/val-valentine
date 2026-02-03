@@ -55,7 +55,7 @@
 
     .card {
       width: min(730px, 92vw);
-      padding: 40px 35px 30px;
+      padding: 40px 30px 30px;
       background: var(--card);
       backdrop-filter: blur(10px);
       border-radius: 22px;
@@ -169,7 +169,6 @@
 
     .result {
       display: none;
-      margin-top: 18px;
       animation: pop .35s ease;
       max-height: 70vh;
       overflow-y: auto;
@@ -444,6 +443,7 @@
     function moveNo(px, py) {
       const z = zone.getBoundingClientRect();
       const b = noBtn.getBoundingClientRect();
+      const yb = yesBtn.getBoundingClientRect();
 
       let dx = (b.left + b.width / 2) - px;
       let dy = (b.top + b.height / 2) - py;
@@ -451,11 +451,41 @@
       dx /= mag;
       dy /= mag;
 
-      let newLeft = (b.left - z.left) + dx * 150;
-      let newTop  = (b.top - z.top) + dy * 150;
+      let newLeft = (b.left - z.left) + dx * 200;
+      let newTop  = (b.top - z.top) + dy * 200;
 
-      newLeft = clamp(newLeft, 0, z.width - b.width);
-      newTop  = clamp(newTop, 0, z.height - b.height);
+      // Allow more movement outside the zone
+      newLeft = clamp(newLeft, -100, z.width + 100 - b.width);
+      newTop  = clamp(newTop, -100, z.height + 100 - b.height);
+
+      // Check collision with Yes button
+      const noBtnSimulated = {
+        left: z.left + newLeft,
+        right: z.left + newLeft + b.width,
+        top: z.top + newTop,
+        bottom: z.top + newTop + b.height
+      };
+
+      // If overlapping with Yes button, adjust position
+      if (!(noBtnSimulated.right < yb.left || noBtnSimulated.left > yb.right ||
+            noBtnSimulated.bottom < yb.top || noBtnSimulated.top > yb.bottom)) {
+        // Push away from Yes button
+        const yesCenterX = yb.left + yb.width / 2;
+        const yesCenterY = yb.top + yb.height / 2;
+        const noCenterX = z.left + newLeft + b.width / 2;
+        const noCenterY = z.top + newTop + b.height / 2;
+        
+        let pushDx = noCenterX - yesCenterX;
+        let pushDy = noCenterY - yesCenterY;
+        let pushMag = Math.hypot(pushDx, pushDy) || 1;
+        pushDx /= pushMag;
+        pushDy /= pushMag;
+        
+        newLeft = (yb.left - z.left) + pushDx * 150;
+        newTop = (yb.top - z.top) + pushDy * 150;
+        newLeft = clamp(newLeft, -100, z.width + 100 - b.width);
+        newTop = clamp(newTop, -100, z.height + 100 - b.height);
+      }
 
       noBtn.style.left = newLeft + "px";
       noBtn.style.top = newTop + "px";
